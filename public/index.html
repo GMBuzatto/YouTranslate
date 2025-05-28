@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTranslate - Tradutor de Vídeos com IA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .emoji {
+            font-size: 3rem;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        
+        .title-text {
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        
+        .video-input-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 1rem;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .progress-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            display: none;
+            margin-top: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-section.visible {
+            display: block !important;
+            animation: fadeInUp 0.5s ease;
+        }
+        
+        .progress-container {
+            margin: 1.5rem 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1rem 0;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #00ff88, #00d4aa);
+            width: 0%;
+            transition: width 0.8s ease-out;
+            position: relative;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0, 255, 136, 0.3);
+        }
+        
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .progress-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+        
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 120px;
+            padding: 0.5rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .progress-step.active {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid rgba(0, 255, 136, 0.5);
+            transform: scale(1.05);
+        }
+        
+        .progress-step.completed {
+            background: rgba(0, 255, 136, 0.3);
+            border: 1px solid rgba(0, 255, 136, 0.7);
+        }
+        
+        .step-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .step-label {
+            font-size: 0.8rem;
+            text-align: center;
+            opacity: 0.8;
+        }
+        
+        .progress-details {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0.5rem 0;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            opacity: 0.9;
+        }
+        
+        .detail-value {
+            opacity: 0.8;
+            font-family: monospace;
+        }
+        
+        .segments-counter {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid rgba(0, 255, 136, 0.5);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            margin: 1rem 0;
+            text-align: center;
+            display: none;
+        }
+        
+        .segments-counter.visible {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+        
+        .segments-progress-bar {
+            width: 100%;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+            position: relative;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .segments-progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            width: 0%;
+            transition: width 0.6s ease-out;
+            position: relative;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(255, 107, 107, 0.3);
+        }
+        
+        .segments-progress-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 0.7rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .time-estimate {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            margin: 1rem 0;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .video-player-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            display: none;
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        video {
+            width: 100%;
+            border-radius: 10px;
+        }
+        
+        .subtitles-overlay {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            text-align: center;
+            max-width: 90%;
+            display: none;
+        }
+        
+        .video-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .video-info h3 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .video-info p {
+            opacity: 0.8;
+            margin-bottom: 0.3rem;
+        }
+        
+        .controls {
+            margin-top: 1rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .error-message {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            color: #ffcccc;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            display: none;
+        }
+        
+        .success-message {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+            color: #ccffcc;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            display: none;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .feature {
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .feature-emoji {
+            font-size: 1.2rem;
+        }
+        
+        .feature p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .btn-secondary {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <span class="emoji">🎬</span>
+                <span class="title-text">YouTranslate</span>
+            </h1>
+            <p class="subtitle">Tradutor automático de vídeos do YouTube com IA: transcreva, traduza e reproduza com legendas</p>
+        </div>
+        
+        <div class="main-content">
+            <!-- Seção de Input do Vídeo -->
+            <div class="video-input-section">
+                <h2>📹 Processar Vídeo do YouTube</h2>
+                <div class="input-group">
+                    <label for="youtube-url">URL do YouTube:</label>
+                    <input type="url" id="youtube-url" placeholder="https://www.youtube.com/watch?v=..." />
+                </div>
+                
+                <div class="input-group">
+                    <label for="source-language">Idioma do Vídeo:</label>
+                    <select id="source-language">
+                        <option value="en">Inglês</option>
+                        <option value="pt">Português</option>
+                        <option value="es">Espanhol</option>
+                        <option value="fr">Francês</option>
+                        <option value="de">Alemão</option>
+                        <option value="it">Italiano</option>
+                        <option value="ja">Japonês</option>
+                        <option value="ko">Coreano</option>
+                        <option value="zh">Chinês</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="target-language">Traduzir para:</label>
+                    <select id="target-language">
+                        <option value="pt">Português</option>
+                        <option value="en">Inglês</option>
+                        <option value="es">Espanhol</option>
+                        <option value="fr">Francês</option>
+                        <option value="de">Alemão</option>
+                        <option value="it">Italiano</option>
+                        <option value="ja">Japonês</option>
+                        <option value="ko">Coreano</option>
+                        <option value="zh">Chinês</option>
+                    </select>
+                </div>
+                
+                <button class="btn" id="process-btn">
+                    <span id="process-text">🚀 Processar Vídeo</span>
+                    <span id="process-loading" class="loading" style="display: none;"></span>
+                </button>
+                
+                <div class="error-message" id="error-message"></div>
+                <div class="success-message" id="success-message"></div>
+            </div>
+            
+            <!-- Seção de Progresso -->
+            <div class="progress-section" id="progress-section">
+                <h2>⏳ Processando Vídeo</h2>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                        <span class="progress-percentage" id="progress-percentage">0%</span>
+                    </div>
+                </div>
+                <p id="progress-text">Iniciando processamento...</p>
+                
+                <div class="progress-steps" id="progress-steps">
+                    <div class="progress-step" id="step-downloading">
+                        <span class="step-icon">⬇️</span>
+                        <span class="step-label">Download</span>
+                    </div>
+                    <div class="progress-step" id="step-extracting">
+                        <span class="step-icon">🎵</span>
+                        <span class="step-label">Extração de Áudio</span>
+                    </div>
+                    <div class="progress-step" id="step-transcribing">
+                        <span class="step-icon">🤖</span>
+                        <span class="step-label">Transcrição</span>
+                    </div>
+                    <div class="progress-step" id="step-translating">
+                        <span class="step-icon">🌍</span>
+                        <span class="step-label">Tradução</span>
+                    </div>
+                    <div class="progress-step" id="step-generating">
+                        <span class="step-icon">🎬</span>
+                        <span class="step-label">Finalizando</span>
+                    </div>
+                </div>
+                
+                <div class="segments-counter" id="segments-counter">
+                    <strong>🔄 Traduzindo segmentos: <span id="segments-count">0/0</span></strong>
+                    <div class="segments-progress-bar" id="segments-progress-bar">
+                        <div class="segments-progress-fill" id="segments-progress-fill"></div>
+                        <span class="segments-progress-percentage" id="segments-progress-percentage">0%</span>
+                    </div>
+                    <div style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">
+                        <em id="current-segment">Preparando tradução...</em>
+                    </div>
+                </div>
+                
+                <div class="progress-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value" id="current-status">Iniciando...</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Tempo Decorrido:</span>
+                        <span class="detail-value" id="elapsed-time">00:00</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Seção do Player de Vídeo -->
+            <div class="video-player-section" id="video-player-section">
+                <h2>🎥 Vídeo com Legendas</h2>
+                <div class="video-container">
+                    <video id="video-player" controls>
+                        Seu navegador não suporta o elemento de vídeo.
+                    </video>
+                    <div class="subtitles-overlay" id="subtitles-overlay"></div>
+                </div>
+                
+                <div class="video-info" id="video-info">
+                    <h3 id="video-title"></h3>
+                    <p><strong>Autor:</strong> <span id="video-author"></span></p>
+                    <p><strong>Duração:</strong> <span id="video-duration"></span></p>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-secondary" id="toggle-subtitles-btn">
+                        <span id="subtitle-toggle-text">🔤 Ocultar Legendas</span>
+                    </button>
+                    <button class="btn btn-secondary" id="download-subtitles-btn">
+                        📥 Baixar Legendas
+                    </button>
+                    <button class="btn btn-secondary" id="process-new-video-btn">
+                        🔄 Novo Vídeo
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Seção de Recursos -->
+        <div class="features">
+            <div class="feature">
+                <h3>
+                    <span class="feature-emoji">🤖</span>
+                    <span>IA Avançada</span>
+                </h3>
+                <p>Transcrição e tradução com modelos Groq (Whisper + Llama)</p>
+            </div>
+            <div class="feature">
+                <h3>
+                    <span class="feature-emoji">⚡</span>
+                    <span>Processamento Rápido</span>
+                </h3>
+                <p>Download, extração de áudio e transcrição automatizados</p>
+            </div>
+            <div class="feature">
+                <h3>
+                    <span class="feature-emoji">🎯</span>
+                    <span>Legendas Precisas</span>
+                </h3>
+                <p>Sincronização temporal e tradução contextual</p>
+            </div>
+            <div class="feature">
+                <h3>
+                    <span class="feature-emoji">🌍</span>
+                    <span>Múltiplos Idiomas</span>
+                </h3>
+                <p>Suporte para 9 idiomas diferentes</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variáveis globais
+        let currentJobId = null;
+        let currentSubtitles = [];
+        let subtitlesVisible = true;
+        let progressInterval = null;
+        let startTime = null;
+        let totalSegments = 0;
+        let translatedSegments = 0;
+        let elapsedTimeInterval = null;
+
+        async function processVideo() {
+            console.log('🚀 [FRONTEND] === FUNÇÃO PROCESSVIDEO CHAMADA ===');
+            
+            const url = document.getElementById('youtube-url').value.trim();
+            console.log('📋 [FRONTEND] URL coletada:', url);
+            
+            if (!url) {
+                console.error('❌ [FRONTEND] URL vazia');
+                showError('Por favor, insira uma URL do YouTube');
+                return;
+            }
+            
+            // Remover o @ se estiver presente
+            const cleanUrl = url.replace(/^@/, '');
+            console.log('🧹 [FRONTEND] URL limpa:', cleanUrl);
+            
+            const sourceLanguage = document.getElementById('source-language').value;
+            const targetLanguage = document.getElementById('target-language').value;
+
+            console.log('📋 [FRONTEND] Dados coletados:', {
+                url,
+                sourceLanguage,
+                targetLanguage
+            });
+
+            console.log('🔍 [FRONTEND] Validando URL...');
+            // Validar URL primeiro
+            try {
+                const isValid = await validateUrl(cleanUrl);
+                console.log('🔍 [FRONTEND] Resultado da validação:', isValid);
+                if (!isValid) {
+                    console.error('❌ [FRONTEND] URL inválida');
+                    return;
+                }
+            } catch (error) {
+                console.error('💥 [FRONTEND] Erro na validação:', error);
+                showError('Erro ao validar URL');
+                return;
+            }
+
+            console.log('✅ [FRONTEND] URL válida, iniciando processamento...');
+            setProcessingState(true);
+            hideMessages();
+
+            try {
+                console.log('📡 [FRONTEND] Enviando requisição para /api/v1/video/process...');
+                
+                // Criar um AbortController para timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => {
+                    console.error('⏰ [FRONTEND] Timeout na requisição (30s)');
+                    controller.abort();
+                }, 30000); // 30 segundos de timeout
+                
+                const response = await fetch('/api/v1/video/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: cleanUrl,
+                        language: sourceLanguage,
+                        targetLanguage: targetLanguage
+                    }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+                console.log('📨 [FRONTEND] Resposta recebida:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    ok: response.ok
+                });
+
+                if (!response.ok) {
+                    console.error('❌ [FRONTEND] Resposta não OK:', response.status, response.statusText);
+                    const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+                    console.error('❌ [FRONTEND] Dados do erro:', errorData);
+                    throw new Error(errorData.message || 'Erro no processamento');
+                }
+
+                const data = await response.json();
+                console.log('📄 [FRONTEND] Dados da resposta:', data);
+
+                if (data.jobId) {
+                    currentJobId = data.jobId;
+                    console.log('✅ [FRONTEND] Job criado com sucesso:', currentJobId);
+                    showSuccess(`Processamento iniciado! Job ID: ${data.jobId}`);
+                    
+                    console.log('🎯 [FRONTEND] Chamando showProgressSection...');
+                    showProgressSection();
+                    
+                    console.log('📊 [FRONTEND] Chamando startProgressMonitoring...');
+                    startProgressMonitoring();
+                } else {
+                    console.error('❌ [FRONTEND] JobId não encontrado na resposta:', data);
+                    throw new Error('JobId não retornado pelo servidor');
+                }
+
+            } catch (error) {
+                console.error('💥 [FRONTEND] Erro durante o processamento:', error);
+                if (error.name === 'AbortError') {
+                    showError('Timeout: O servidor demorou muito para responder. Tente novamente.');
+                } else {
+                    showError(`Erro: ${error.message}`);
+                }
+                setProcessingState(false);
+            }
+        }
+
+        async function validateUrl(url) {
+            console.log('🔍 [FRONTEND] Validando URL:', url);
+            try {
+                console.log('📡 [FRONTEND] Enviando requisição para /api/v1/video/validate...');
+                const response = await fetch('/api/v1/video/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                console.log('📨 [FRONTEND] Resposta da validação:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    ok: response.ok
+                });
+
+                if (!response.ok) {
+                    console.error('❌ [FRONTEND] Erro na validação - resposta não OK');
+                    const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+                    console.error('❌ [FRONTEND] Dados do erro de validação:', errorData);
+                    showError(errorData.error || 'Erro ao validar URL');
+                    return false;
+                }
+
+                const data = await response.json();
+                console.log('📄 [FRONTEND] Dados da validação:', data);
+
+                if (data.valid) {
+                    console.log('✅ [FRONTEND] URL válida');
+                    return true;
+                } else {
+                    console.error('❌ [FRONTEND] URL inválida:', data.error);
+                    showError(data.error || 'URL inválida');
+                    return false;
+                }
+
+            } catch (error) {
+                console.error('💥 [FRONTEND] Erro ao validar URL:', error);
+                showError('Erro ao validar URL');
+                return false;
+            }
+        }
+
+        function showProgressSection() {
+            console.log('🎯 [FRONTEND] Mostrando seção de progresso...');
+            const progressSection = document.getElementById('progress-section');
+            
+            if (!progressSection) {
+                console.error('❌ [FRONTEND] Elemento progress-section não encontrado!');
+                return;
+            }
+            
+            console.log('📋 [FRONTEND] Elemento progress-section encontrado:', progressSection);
+            console.log('📋 [FRONTEND] Display atual:', progressSection.style.display);
+            console.log('📋 [FRONTEND] Classes atuais:', progressSection.className);
+            
+            progressSection.style.display = 'block';
+            progressSection.classList.add('visible');
+            
+            console.log('📋 [FRONTEND] Após mudanças - Display:', progressSection.style.display);
+            console.log('📋 [FRONTEND] Após mudanças - Classes:', progressSection.className);
+            console.log('✅ [FRONTEND] Seção de progresso exibida');
+            
+            // Resetar valores
+            totalSegments = 0;
+            translatedSegments = 0;
+            
+            // Resetar elementos visuais
+            const progressFill = document.getElementById('progress-fill');
+            const progressPercentage = document.getElementById('progress-percentage');
+            const segmentsCounter = document.getElementById('segments-counter');
+            const segmentsProgressFill = document.getElementById('segments-progress-fill');
+            const segmentsProgressPercentage = document.getElementById('segments-progress-percentage');
+            const elapsedTime = document.getElementById('elapsed-time');
+            
+            console.log('🔍 [FRONTEND] Elementos encontrados:', {
+                progressFill: !!progressFill,
+                progressPercentage: !!progressPercentage,
+                segmentsCounter: !!segmentsCounter,
+                segmentsProgressFill: !!segmentsProgressFill,
+                segmentsProgressPercentage: !!segmentsProgressPercentage,
+                elapsedTime: !!elapsedTime
+            });
+            
+            if (progressFill) progressFill.style.width = '0%';
+            if (progressPercentage) progressPercentage.textContent = '0%';
+            if (segmentsCounter) segmentsCounter.classList.remove('visible');
+            if (segmentsProgressFill) segmentsProgressFill.style.width = '0%';
+            if (segmentsProgressPercentage) segmentsProgressPercentage.textContent = '0%';
+            if (elapsedTime) elapsedTime.textContent = '00:00';
+            
+            // Resetar steps
+            const allSteps = document.querySelectorAll('.progress-step');
+            console.log('🔍 [FRONTEND] Steps encontrados:', allSteps.length);
+            allSteps.forEach(step => {
+                step.classList.remove('active', 'completed', 'pulse');
+            });
+            
+            // Iniciar contador de tempo
+            console.log('⏰ [FRONTEND] Iniciando contador de tempo...');
+            startElapsedTimeCounter();
+            
+            // Scroll para a seção de progresso
+            console.log('📜 [FRONTEND] Fazendo scroll para a seção...');
+            progressSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            console.log('✅ [FRONTEND] showProgressSection concluída');
+        }
+
+        function startProgressMonitoring() {
+            console.log('📊 [FRONTEND] Iniciando monitoramento de progresso para job:', currentJobId);
+            if (progressInterval) {
+                clearInterval(progressInterval);
+            }
+
+            progressInterval = setInterval(async () => {
+                if (!currentJobId) {
+                    console.warn('⚠️ [FRONTEND] Job ID não encontrado, parando monitoramento');
+                    return;
+                }
+
+                try {
+                    console.log('📡 [FRONTEND] Verificando status do job:', currentJobId);
+                    const response = await fetch(`/api/v1/video/job/${currentJobId}/status`);
+                    
+                    console.log('📨 [FRONTEND] Resposta do status:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        ok: response.ok
+                    });
+
+                    const data = await response.json();
+                    console.log('📄 [FRONTEND] Dados do status:', data);
+
+                    updateProgress(data);
+
+                    if (data.status === 'completed') {
+                        console.log('✅ [FRONTEND] Job completado!');
+                        clearInterval(progressInterval);
+                        stopElapsedTimeCounter();
+                        showVideoPlayer(data.result);
+                    } else if (data.status === 'error') {
+                        console.error('❌ [FRONTEND] Job com erro:', data.error);
+                        clearInterval(progressInterval);
+                        stopElapsedTimeCounter();
+                        showError(`Erro no processamento: ${data.error}`);
+                        setProcessingState(false);
+                    } else {
+                        console.log('⏳ [FRONTEND] Job em progresso:', data.status, `${data.progress}%`);
+                        if (data.translatedSegments !== undefined && data.totalSegments) {
+                            console.log('🔢 [FRONTEND] Segmentos:', `${data.translatedSegments}/${data.totalSegments}`);
+                        }
+                    }
+
+                } catch (error) {
+                    console.error('💥 [FRONTEND] Erro ao verificar status:', error);
+                }
+            }, 1500); // Intervalo fixo de 1.5 segundos
+        }
+
+        function updateProgress(data) {
+            console.log('📊 [FRONTEND] Atualizando progresso:', data);
+            
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+            const progressPercentage = document.getElementById('progress-percentage');
+            const currentStatus = document.getElementById('current-status');
+            const segmentsCounter = document.getElementById('segments-counter');
+            const segmentsCount = document.getElementById('segments-count');
+
+            // Calcular progresso mais preciso durante a tradução
+            let actualProgress = data.progress;
+            
+            // Durante a tradução, calcular progresso baseado nos segmentos
+            if (data.status === 'translating' && data.totalSegments && data.translatedSegments !== undefined) {
+                // Progresso base da tradução é 70%, e vai até 90%
+                const translationBaseProgress = 70;
+                const translationMaxProgress = 90;
+                const translationRange = translationMaxProgress - translationBaseProgress;
+                
+                // Calcular progresso dos segmentos (0 a 1)
+                const segmentProgress = data.translatedSegments / data.totalSegments;
+                
+                // Aplicar ao range de tradução
+                actualProgress = translationBaseProgress + (segmentProgress * translationRange);
+                
+                console.log('🔢 [FRONTEND] Progresso calculado:', {
+                    translatedSegments: data.translatedSegments,
+                    totalSegments: data.totalSegments,
+                    segmentProgress: segmentProgress,
+                    actualProgress: actualProgress
+                });
+            }
+
+            // Atualizar barra de progresso com valor calculado
+            const roundedProgress = Math.round(actualProgress);
+            progressFill.style.width = `${roundedProgress}%`;
+            progressPercentage.textContent = `${roundedProgress}%`;
+
+            // Mapear status para mensagens e steps
+            const statusConfig = {
+                'downloading': {
+                    message: '⬇️ Baixando vídeo do YouTube...',
+                    step: 'step-downloading',
+                    icon: '⬇️'
+                },
+                'extracting_audio': {
+                    message: '🎵 Extraindo áudio do vídeo...',
+                    step: 'step-extracting',
+                    icon: '🎵'
+                },
+                'transcribing': {
+                    message: '🤖 Transcrevendo áudio com IA...',
+                    step: 'step-transcribing',
+                    icon: '🤖'
+                },
+                'translating': {
+                    message: '🌍 Traduzindo conteúdo...',
+                    step: 'step-translating',
+                    icon: '🌍'
+                },
+                'generating_subtitles': {
+                    message: '🎬 Gerando legendas sincronizadas...',
+                    step: 'step-generating',
+                    icon: '🎬'
+                },
+                'completed': {
+                    message: '✅ Processamento concluído!',
+                    step: 'step-generating',
+                    icon: '✅'
+                }
+            };
+
+            const config = statusConfig[data.status] || {
+                message: 'Processando...',
+                step: null,
+                icon: '⏳'
+            };
+
+            // Atualizar textos
+            progressText.textContent = config.message;
+            currentStatus.textContent = config.message;
+
+            // Atualizar steps visuais
+            updateProgressSteps(data.status);
+
+            // Mostrar contador de segmentos durante tradução
+            if (data.status === 'translating') {
+                if (data.totalSegments && data.translatedSegments !== undefined) {
+                    totalSegments = data.totalSegments;
+                    translatedSegments = data.translatedSegments;
+                    segmentsCount.textContent = `${translatedSegments}/${totalSegments}`;
+                    segmentsCounter.classList.add('visible');
+                    
+                    // Atualizar barra de progresso dos segmentos
+                    const segmentsProgressFill = document.getElementById('segments-progress-fill');
+                    const segmentsProgressPercentage = document.getElementById('segments-progress-percentage');
+                    
+                    if (segmentsProgressFill && segmentsProgressPercentage) {
+                        const segmentProgressPercent = totalSegments > 0 ? Math.round((translatedSegments / totalSegments) * 100) : 0;
+                        segmentsProgressFill.style.width = `${segmentProgressPercent}%`;
+                        segmentsProgressPercentage.textContent = `${segmentProgressPercent}%`;
+                    }
+                    
+                    // Mostrar texto do segmento atual se disponível
+                    if (data.currentSegmentText) {
+                        const currentSegmentElement = document.getElementById('current-segment');
+                        if (currentSegmentElement) {
+                            // Limitar o texto para não quebrar o layout
+                            const displayText = data.currentSegmentText.length > 60 
+                                ? data.currentSegmentText.substring(0, 60) + '...'
+                                : data.currentSegmentText;
+                            currentSegmentElement.textContent = displayText;
+                        }
+                    }
+                    
+                    // Atualizar mensagem de progresso com informações dos segmentos
+                    const segmentMessage = `🌍 Traduzindo segmento ${translatedSegments}/${totalSegments}`;
+                    progressText.textContent = segmentMessage;
+                    currentStatus.textContent = segmentMessage;
+                    
+                } else {
+                    // Fallback para o método anterior (parsing de logs)
+                    if (data.message && data.message.includes('Segmento')) {
+                        const match = data.message.match(/Segmento (\d+)\/(\d+)/);
+                        if (match) {
+                            translatedSegments = parseInt(match[1]);
+                            totalSegments = parseInt(match[2]);
+                            segmentsCount.textContent = `${translatedSegments}/${totalSegments}`;
+                            segmentsCounter.classList.add('visible');
+                        }
+                    }
+                }
+            } else {
+                segmentsCounter.classList.remove('visible');
+            }
+        }
+
+        function updateProgressSteps(currentStatus) {
+            const steps = ['downloading', 'extracting_audio', 'transcribing', 'translating', 'generating_subtitles'];
+            const stepElements = {
+                'downloading': document.getElementById('step-downloading'),
+                'extracting_audio': document.getElementById('step-extracting'),
+                'transcribing': document.getElementById('step-transcribing'),
+                'translating': document.getElementById('step-translating'),
+                'generating_subtitles': document.getElementById('step-generating')
+            };
+
+            const currentIndex = steps.indexOf(currentStatus);
+
+            steps.forEach((step, index) => {
+                const element = stepElements[step];
+                if (element) {
+                    element.classList.remove('active', 'completed');
+                    
+                    if (index < currentIndex) {
+                        element.classList.add('completed');
+                    } else if (index === currentIndex) {
+                        element.classList.add('active', 'pulse');
+                    } else {
+                        element.classList.remove('pulse');
+                    }
+                }
+            });
+        }
+
+        function startElapsedTimeCounter() {
+            if (elapsedTimeInterval) {
+                clearInterval(elapsedTimeInterval);
+            }
+
+            startTime = Date.now();
+            elapsedTimeInterval = setInterval(() => {
+                if (startTime) {
+                    const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                    const elapsedTimeElement = document.getElementById('elapsed-time');
+                    if (elapsedTimeElement) {
+                        elapsedTimeElement.textContent = formatTime(elapsedSeconds);
+                    }
+                }
+            }, 1000);
+        }
+
+        function stopElapsedTimeCounter() {
+            if (elapsedTimeInterval) {
+                clearInterval(elapsedTimeInterval);
+                elapsedTimeInterval = null;
+            }
+            startTime = null;
+        }
+
+        function showVideoPlayer(result) {
+            hideProgressSection();
+            
+            const videoPlayer = document.getElementById('video-player');
+            const videoInfo = document.getElementById('video-info');
+            const videoPlayerSection = document.getElementById('video-player-section');
+
+            // Configurar vídeo
+            videoPlayer.src = result.videoUrl;
+            currentSubtitles = result.subtitles;
+
+            // Configurar informações do vídeo
+            document.getElementById('video-title').textContent = result.videoInfo.title;
+            document.getElementById('video-author').textContent = result.videoInfo.author;
+            document.getElementById('video-duration').textContent = formatDuration(result.videoInfo.duration);
+
+            // Configurar legendas
+            videoPlayer.addEventListener('timeupdate', updateSubtitles);
+
+            videoPlayerSection.style.display = 'block';
+            setProcessingState(false);
+        }
+
+        function updateSubtitles() {
+            if (!subtitlesVisible || !currentSubtitles.length) return;
+
+            const videoPlayer = document.getElementById('video-player');
+            const subtitlesOverlay = document.getElementById('subtitles-overlay');
+            const currentTime = videoPlayer.currentTime;
+
+            const currentSubtitle = currentSubtitles.find(sub => 
+                currentTime >= sub.start && currentTime <= sub.end
+            );
+
+            if (currentSubtitle) {
+                subtitlesOverlay.textContent = currentSubtitle.translation || currentSubtitle.text;
+                subtitlesOverlay.style.display = 'block';
+            } else {
+                subtitlesOverlay.style.display = 'none';
+            }
+        }
+
+        function toggleSubtitles() {
+            subtitlesVisible = !subtitlesVisible;
+            const toggleText = document.getElementById('subtitle-toggle-text');
+            const subtitlesOverlay = document.getElementById('subtitles-overlay');
+
+            if (subtitlesVisible) {
+                toggleText.textContent = '🔤 Ocultar Legendas';
+            } else {
+                toggleText.textContent = '🔤 Mostrar Legendas';
+                subtitlesOverlay.style.display = 'none';
+            }
+        }
+
+        function downloadSubtitles() {
+            if (!currentSubtitles.length) return;
+
+            let srtContent = '';
+            currentSubtitles.forEach((subtitle, index) => {
+                const startTime = formatSRTTime(subtitle.start);
+                const endTime = formatSRTTime(subtitle.end);
+                
+                srtContent += `${index + 1}\n`;
+                srtContent += `${startTime} --> ${endTime}\n`;
+                srtContent += `${subtitle.translation || subtitle.text}\n\n`;
+            });
+
+            const blob = new Blob([srtContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'legendas.srt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function processNewVideo() {
+            // Reset do estado
+            currentJobId = null;
+            currentSubtitles = [];
+            subtitlesVisible = true;
+            totalSegments = 0;
+            translatedSegments = 0;
+            
+            if (progressInterval) {
+                clearInterval(progressInterval);
+            }
+            
+            // Parar contador de tempo
+            stopElapsedTimeCounter();
+
+            // Ocultar seções
+            hideProgressSection();
+            document.getElementById('video-player-section').style.display = 'none';
+            
+            // Limpar campos
+            document.getElementById('youtube-url').value = '';
+            hideMessages();
+            
+            setProcessingState(false);
+        }
+
+        function setProcessingState(processing) {
+            const processBtn = document.getElementById('process-btn');
+            const processText = document.getElementById('process-text');
+            const processLoading = document.getElementById('process-loading');
+
+            processBtn.disabled = processing;
+            
+            if (processing) {
+                processText.style.display = 'none';
+                processLoading.style.display = 'inline-block';
+            } else {
+                processText.style.display = 'inline';
+                processLoading.style.display = 'none';
+            }
+        }
+
+        function hideProgressSection() {
+            const progressSection = document.getElementById('progress-section');
+            progressSection.style.display = 'none';
+            progressSection.classList.remove('visible');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+
+        function hideMessages() {
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('success-message').style.display = 'none';
+        }
+
+        function formatDuration(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+
+            if (hours > 0) {
+                return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function formatSRTTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+            const ms = Math.floor((seconds % 1) * 1000);
+
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')},${ms.toString().padStart(3, '0')}`;
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        // Cleanup ao sair da página
+        window.addEventListener('beforeunload', () => {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+            }
+        });
+
+        // Event listeners para os botões
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🎯 [FRONTEND] DOM carregado, configurando event listeners...');
+            
+            // Botão de processar vídeo
+            const processBtn = document.getElementById('process-btn');
+            if (processBtn) {
+                processBtn.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    console.log('🎯 [FRONTEND] Botão clicado!');
+                    processVideo();
+                });
+                console.log('✅ [FRONTEND] Event listener do botão configurado');
+            } else {
+                console.error('❌ [FRONTEND] Botão process-btn não encontrado!');
+            }
+            
+            // Botão de alternar legendas
+            const toggleBtn = document.getElementById('toggle-subtitles-btn');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', toggleSubtitles);
+            }
+            
+            // Botão de baixar legendas
+            const downloadBtn = document.getElementById('download-subtitles-btn');
+            if (downloadBtn) {
+                downloadBtn.addEventListener('click', downloadSubtitles);
+            }
+            
+            // Botão de novo vídeo
+            const newVideoBtn = document.getElementById('process-new-video-btn');
+            if (newVideoBtn) {
+                newVideoBtn.addEventListener('click', processNewVideo);
+            }
+            
+            console.log('✅ [FRONTEND] Todos os event listeners configurados!');
+        });
+    </script>
+</body>
+</html> 
